@@ -1,6 +1,8 @@
 
 body{
-    background-image: url("../images/pulpfiction.jpg")
+    background-image: url("../images/pulpfiction.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
     }
 
 a, h1, h2, h3, h4, h5, h6, p{
