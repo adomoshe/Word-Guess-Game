@@ -16,12 +16,11 @@ const game = {
   remainingGuesses: 5,
   wordBeingGuessed: '',
   guessedLetters: '',
+  correctUserGuesses: [],
 
   start() {
     document.addEventListener('keyup', event => {
-      console.log('start', event);
       if (event.code === 'Space' && this.spaceCounter === 0) {
-        console.log('start', this);
         this.spaceCounter++;
         return this.logic();
       }
@@ -34,30 +33,36 @@ const game = {
     let userGuess = '';
 
     console.log(moviePick);
-
-    for (let i = 0; i < moviePick.length; i++) {
-      this.wordBeingGuessed += '_ ';
-    }
+    this.stringGen(moviePick);
     this.updateHTML();
 
     document.addEventListener('keyup', event => {
       if (event.keyCode < 65 || event.keyCode > 90) {
-        return alert(`${event.key} is an invalid key`);
+        if (event.code === 'Space') {
+          return alert(`${event.code} is an invalid key`);
+        } else {
+          return alert(`${event.key} is an invalid key`);
+        }
+      } else {
+        userGuess = event.key.toUpperCase();
+        console.log(`User Guess ${userGuess}`);
       }
-      userGuess = event.key.toUpperCase();
-      console.log(`User Guess ${userGuess}`);
 
       if (
         this.guessedLetters.indexOf(userGuess) !== -1 ||
         this.wordBeingGuessed.indexOf(userGuess) !== -1
       ) {
         return alert(`You already guessed ${userGuess}!`);
-      }
-
-      if (moviePick.indexOf(userGuess) === -1) {
+      } else if (moviePick.indexOf(userGuess) === -1) {
         this.remainingGuesses--;
         this.guessedLetters += `${userGuess} `;
         return this.updateHTML();
+      } else if (this.wordBeingGuessed.indexOf('_ ' || '_') === -1 ) {
+        this.wins++;
+        return this.resetGame();
+      } else if (this.remainingGuesses === 0 ) {
+        this.losses++;
+        return this.resetGame();
       } else {
         return this.stringBuilder(moviePick, userGuess);
       }
@@ -66,25 +71,48 @@ const game = {
   stringBuilder(moviePick, userGuess) {
     const letterIndices = [],
       moviePickArr = moviePick.split('');
+    let wordBeingGuessedArr = [];
     console.log('movie pick arr 1', moviePickArr);
     while (moviePickArr.indexOf(userGuess) !== -1) {
       letterIndices.push(moviePickArr.indexOf(userGuess));
       let curIndex = letterIndices.slice(-1);
-      console.log('cur index', curIndex)
+      console.log('cur index', curIndex);
       moviePickArr.splice(curIndex, 1, '');
       console.log('movie pick arr 2', moviePickArr);
     }
     console.log(`Letter Indices ${letterIndices}`);
-    let wordBeingGuessedArr = this.wordBeingGuessed.split(' ')
-    wordBeingGuessedArr.pop();
+    wordBeingGuessedArr = this.wordBeingGuessed.split(' ');
     console.log('word being guessed Arr', wordBeingGuessedArr);
     for (let i = 0; i < letterIndices.length; i++) {
       wordBeingGuessedArr.splice(letterIndices[i], 1, userGuess);
-      console.log(this.wordBeingGuessed[letterIndices[i]]);
+      console.log(
+        'word being guessed index',
+        this.wordBeingGuessed[letterIndices[i]]
+      );
       console.log('word being guessed Arr', wordBeingGuessedArr);
     }
     this.wordBeingGuessed = wordBeingGuessedArr.join().replace(/,/g, ' ');
     return this.updateHTML();
+  },
+  stringGen(moviePick) {
+    for (let i = 0; i < moviePick.length; i++) {
+      for (let t = 0; t < this.correctUserGuesses.length; t++) {
+        if (moviePick[i] === this.correctUserGuesses[t]) {
+          this.wordBeingGuessed += this.correctUserGuesses[t] + ' ';
+          this.updateHTML();
+        }
+      }
+      if (i === moviePick.length - 1) {
+        this.wordBeingGuessed += '_';
+        this.updateHTML();
+      } else if (moviePick[i] === ' ') {
+        this.wordBeingGuessed += '- ';
+        this.updateHTML();
+      } else {
+        this.wordBeingGuessed += '_ ';
+        this.updateHTML();
+      }
+    }
   },
   randomMovie() {
     return this.movieList[Math.floor(Math.random() * this.movieList.length)];
@@ -102,6 +130,13 @@ const game = {
     document.getElementById('number-of-guesses').innerHTML = `You have ${
       this.remainingGuesses
     } guesses left`;
+  },
+  resetGame() {
+    this.remainingGuesses = 5;
+    this.wordbeingGuessed = '';
+    this.guessedLetters = '';
+    this.correctUserGuesses = [];
+    return this.logic();
   }
 };
 
