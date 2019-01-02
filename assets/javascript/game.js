@@ -34,40 +34,70 @@ const game = {
     }
   },
   start() {
-    this.moviePick = this.randomMovie().toUpperCase();
+    let pick = this.movieList[
+      Math.floor(Math.random() * this.movieList.length)
+    ];
+    this.moviePick = pick.toUpperCase();
     console.log(this.moviePick);
     this.stringGen();
     this.updateHTML();
     return document.addEventListener('keyup', this.guess);
   },
+  stringGen() {
+    this.wordBeingGuessed = '';
+    for (let i = 0; i < this.moviePick.length; i++) {
+      let added = false;
+      for (let t = 0; t < this.correctUserGuesses.length; t++) {
+        if (this.moviePick[i] === this.correctUserGuesses[t]) {
+          this.wordBeingGuessed += this.correctUserGuesses[t] + ' ';
+          this.updateHTML();
+          added = true;
+        }
+      }
+      if (i === this.moviePick.length - 1 && !added) {
+        this.wordBeingGuessed += '_';
+        this.updateHTML();
+      } else if (this.moviePick[i] === ' ') {
+        this.wordBeingGuessed += '- ';
+        this.updateHTML();
+      } else if (!added) {
+        this.wordBeingGuessed += '_ ';
+        this.updateHTML();
+      }
+    }
+  },
   guess(e) {
-    game.inputScreening(e, error => {
+    game.screenInput(e, error => {
       if (error) {
         return;
       } else {
-        if (game.moviePick.indexOf(game.userGuess) === -1) {
-          game.remainingGuesses--;
-          game.guessedLetters += `${game.userGuess} `;
-          game.updateHTML();
-          return game.check();
-        } else {
-          game.stringBuilder();
-          return game.check();
-        }
+        game.logic();
       }
     });
   },
-  inputScreening(e, cb) {
+  logic() {
+    if (this.moviePick.indexOf(this.userGuess) === -1) {
+      this.remainingGuesses--;
+      this.guessedLetters += `${this.userGuess} `;
+      this.updateHTML();
+      return this.check();
+    } else {
+      this.correctUserGuesses.push(this.userGuess);
+      this.stringGen();
+      return this.check();
+    }
+  },
+  screenInput(input, cb) {
     let error = false;
     try {
-      if (e.keyCode < 65 || e.keyCode > 90) {
-        if (e.code === 'Space') {
-          throw e.code;
+      if (input.keyCode < 65 || input.keyCode > 90) {
+        if (input.code === 'Space') {
+          throw input.code;
         } else {
-          throw e.key;
+          throw input.key;
         }
       } else {
-        this.userGuess = e.key.toUpperCase();
+        this.userGuess = input.key.toUpperCase();
       }
     } catch (err) {
       if (err) {
@@ -91,46 +121,6 @@ const game = {
       cb(error);
     }
   },
-  stringBuilder() {
-    const letterIndices = [],
-      moviePickArr = this.moviePick.split('');
-    let wordBeingGuessedArr = [];
-    while (moviePickArr.indexOf(this.userGuess) !== -1) {
-      letterIndices.push(moviePickArr.indexOf(this.userGuess));
-      let curIndex = letterIndices.slice(-1);
-      moviePickArr.splice(curIndex, 1, '');
-    }
-    wordBeingGuessedArr = this.wordBeingGuessed.split(' ');
-    for (let i = 0; i < letterIndices.length; i++) {
-      wordBeingGuessedArr.splice(letterIndices[i], 1, this.userGuess);
-    }
-    this.wordBeingGuessed = wordBeingGuessedArr.join().replace(/,/g, ' ');
-    return this.updateHTML();
-  },
-  stringGen() {
-    this.wordBeingGuessed = '';
-    for (let i = 0; i < this.moviePick.length; i++) {
-      // for (let t = 0; t < this.correctUserGuesses.length; t++) {
-      //   if (moviePick[i] === this.correctUserGuesses[t]) {
-      //     this.wordBeingGuessed += this.correctUserGuesses[t] + ' ';
-      //     this.updateHTML();
-      //   }
-      // }
-      if (i === this.moviePick.length - 1) {
-        this.wordBeingGuessed += '_';
-        this.updateHTML();
-      } else if (this.moviePick[i] === ' ') {
-        this.wordBeingGuessed += '- ';
-        this.updateHTML();
-      } else {
-        this.wordBeingGuessed += '_ ';
-        this.updateHTML();
-      }
-    }
-  },
-  randomMovie() {
-    return this.movieList[Math.floor(Math.random() * this.movieList.length)];
-  },
   updateHTML() {
     document.getElementById('wins').innerHTML = `Wins: ${this.wins}`;
     document.getElementById('losses').innerHTML = `Losses: ${this.losses}`;
@@ -147,7 +137,6 @@ const game = {
   check() {
     if (this.wordBeingGuessed.indexOf('_ ' && '_') === -1) {
       this.wins++;
-
       return this.resetGame();
     } else if (this.remainingGuesses === 0) {
       this.losses++;
@@ -164,3 +153,22 @@ const game = {
   }
 };
 game.initial();
+
+// Below method's capabilities have been incorporated into the stringGen method for simplicity
+
+// stringBuilder() {
+//   const letterIndices = [],
+//     moviePickArr = this.moviePick.split('');
+//   let wordBeingGuessedArr = [];
+//   while (moviePickArr.indexOf(this.userGuess) !== -1) {
+//     letterIndices.push(moviePickArr.indexOf(this.userGuess));
+//     let curIndex = letterIndices.slice(-1);
+//     moviePickArr.splice(curIndex, 1, '');
+//   }
+//   wordBeingGuessedArr = this.wordBeingGuessed.split(' ');
+//   for (let i = 0; i < letterIndices.length; i++) {
+//     wordBeingGuessedArr.splice(letterIndices[i], 1, this.userGuess);
+//   }
+//   this.wordBeingGuessed = wordBeingGuessedArr.join().replace(/,/g, ' ');
+//   return this.updateHTML();
+// },
