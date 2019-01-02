@@ -16,96 +16,110 @@ const game = {
   remainingGuesses: 5,
   wordBeingGuessed: '',
   guessedLetters: '',
+  userGuess: '',
+  moviePick: '',
   correctUserGuesses: [],
 
+  initial() {
+    if (this.spaceCounter === 0) {
+      document.addEventListener('keyup', e => {
+        if (e.code === 'Space' && this.spaceCounter === 0) {
+          this.spaceCounter++;
+          document.getElementById('get-started').innerHTML = '';
+          return this.start();
+        }
+      });
+    } else {
+      return this.start();
+    }
+  },
   start() {
-    document.addEventListener('keyup', event => {
-      if (event.code === 'Space' && this.spaceCounter === 0) {
-        this.spaceCounter++;
-        return this.logic();
+    this.moviePick = this.randomMovie().toUpperCase();
+    console.log(this.moviePick);
+    this.stringGen();
+    this.updateHTML();
+    return document.addEventListener('keyup', this.guess);
+  },
+  guess(e) {
+    game.inputScreening(e, error => {
+      if (error) {
+        return;
+      } else {
+        if (game.moviePick.indexOf(game.userGuess) === -1) {
+          game.remainingGuesses--;
+          game.guessedLetters += `${game.userGuess} `;
+          game.updateHTML();
+          return game.check();
+        } else {
+          game.stringBuilder();
+          return game.check();
+        }
       }
     });
   },
-
-  logic() {
-    const moviePicklow = this.randomMovie(),
-      moviePick = moviePicklow.toUpperCase();
-    let userGuess = '';
-
-    console.log(moviePick);
-    this.stringGen(moviePick);
-    this.updateHTML();
-
-    document.addEventListener('keyup', event => {
-      if (event.keyCode < 65 || event.keyCode > 90) {
-        if (event.code === 'Space') {
-          return alert(`${event.code} is an invalid key`);
+  inputScreening(e, cb) {
+    let error = false;
+    try {
+      if (e.keyCode < 65 || e.keyCode > 90) {
+        if (e.code === 'Space') {
+          throw e.code;
         } else {
-          return alert(`${event.key} is an invalid key`);
+          throw e.key;
         }
       } else {
-        userGuess = event.key.toUpperCase();
-        console.log(`User Guess ${userGuess}`);
+        this.userGuess = e.key.toUpperCase();
       }
-
-      if (
-        this.guessedLetters.indexOf(userGuess) !== -1 ||
-        this.wordBeingGuessed.indexOf(userGuess) !== -1
-      ) {
-        return alert(`You already guessed ${userGuess}!`);
-      } else if (moviePick.indexOf(userGuess) === -1) {
-        this.remainingGuesses--;
-        this.guessedLetters += `${userGuess} `;
-        return this.updateHTML();
-      } else if (this.wordBeingGuessed.indexOf('_ ' || '_') === -1 ) {
-        this.wins++;
-        return this.resetGame();
-      } else if (this.remainingGuesses === 0 ) {
-        this.losses++;
-        return this.resetGame();
-      } else {
-        return this.stringBuilder(moviePick, userGuess);
+    } catch (err) {
+      if (err) {
+        error = true;
       }
-    });
-  },
-  stringBuilder(moviePick, userGuess) {
-    const letterIndices = [],
-      moviePickArr = moviePick.split('');
-    let wordBeingGuessedArr = [];
-    console.log('movie pick arr 1', moviePickArr);
-    while (moviePickArr.indexOf(userGuess) !== -1) {
-      letterIndices.push(moviePickArr.indexOf(userGuess));
-      let curIndex = letterIndices.slice(-1);
-      console.log('cur index', curIndex);
-      moviePickArr.splice(curIndex, 1, '');
-      console.log('movie pick arr 2', moviePickArr);
+      return alert(`${err} is an invalid key`);
     }
-    console.log(`Letter Indices ${letterIndices}`);
+    try {
+      if (
+        game.guessedLetters.indexOf(game.userGuess) !== -1 ||
+        game.wordBeingGuessed.indexOf(game.userGuess) !== -1
+      ) {
+        throw game.userGuess;
+      }
+    } catch (err) {
+      if (err) {
+        error = true;
+      }
+      return alert(`You already guessed ${err}!`);
+    } finally {
+      cb(error);
+    }
+  },
+  stringBuilder() {
+    const letterIndices = [],
+      moviePickArr = this.moviePick.split('');
+    let wordBeingGuessedArr = [];
+    while (moviePickArr.indexOf(this.userGuess) !== -1) {
+      letterIndices.push(moviePickArr.indexOf(this.userGuess));
+      let curIndex = letterIndices.slice(-1);
+      moviePickArr.splice(curIndex, 1, '');
+    }
     wordBeingGuessedArr = this.wordBeingGuessed.split(' ');
-    console.log('word being guessed Arr', wordBeingGuessedArr);
     for (let i = 0; i < letterIndices.length; i++) {
-      wordBeingGuessedArr.splice(letterIndices[i], 1, userGuess);
-      console.log(
-        'word being guessed index',
-        this.wordBeingGuessed[letterIndices[i]]
-      );
-      console.log('word being guessed Arr', wordBeingGuessedArr);
+      wordBeingGuessedArr.splice(letterIndices[i], 1, this.userGuess);
     }
     this.wordBeingGuessed = wordBeingGuessedArr.join().replace(/,/g, ' ');
     return this.updateHTML();
   },
-  stringGen(moviePick) {
-    for (let i = 0; i < moviePick.length; i++) {
-      for (let t = 0; t < this.correctUserGuesses.length; t++) {
-        if (moviePick[i] === this.correctUserGuesses[t]) {
-          this.wordBeingGuessed += this.correctUserGuesses[t] + ' ';
-          this.updateHTML();
-        }
-      }
-      if (i === moviePick.length - 1) {
+  stringGen() {
+    this.wordBeingGuessed = '';
+    for (let i = 0; i < this.moviePick.length; i++) {
+      // for (let t = 0; t < this.correctUserGuesses.length; t++) {
+      //   if (moviePick[i] === this.correctUserGuesses[t]) {
+      //     this.wordBeingGuessed += this.correctUserGuesses[t] + ' ';
+      //     this.updateHTML();
+      //   }
+      // }
+      if (i === this.moviePick.length - 1) {
         this.wordBeingGuessed += '_';
         this.updateHTML();
-      } else if (moviePick[i] === ' ') {
+      } else if (this.moviePick[i] === ' ') {
         this.wordBeingGuessed += '- ';
         this.updateHTML();
       } else {
@@ -118,7 +132,6 @@ const game = {
     return this.movieList[Math.floor(Math.random() * this.movieList.length)];
   },
   updateHTML() {
-    document.getElementById('get-started').innerHTML = '';
     document.getElementById('wins').innerHTML = `Wins: ${this.wins}`;
     document.getElementById('losses').innerHTML = `Losses: ${this.losses}`;
     document.getElementById(
@@ -131,13 +144,23 @@ const game = {
       this.remainingGuesses
     } guesses left`;
   },
+  check() {
+    if (this.wordBeingGuessed.indexOf('_ ' && '_') === -1) {
+      this.wins++;
+
+      return this.resetGame();
+    } else if (this.remainingGuesses === 0) {
+      this.losses++;
+      return this.resetGame();
+    }
+  },
   resetGame() {
     this.remainingGuesses = 5;
     this.wordbeingGuessed = '';
     this.guessedLetters = '';
     this.correctUserGuesses = [];
-    return this.logic();
+    document.removeEventListener('keyup', this.guess);
+    return this.initial();
   }
 };
-
-game.start();
+game.initial();
