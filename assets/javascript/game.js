@@ -40,40 +40,33 @@ const game = {
     this.moviePick = pick.toUpperCase();
     console.log(this.moviePick);
     this.stringGen();
-    this.updateHTML();
     return document.addEventListener('keyup', this.guess);
   },
   stringGen() {
     this.wordBeingGuessed = '';
-    for (let i = 0; i < this.moviePick.length; i++) {
-      let added = false;
+    letter: for (let i = 0; i < this.moviePick.length; i++) {
       for (let t = 0; t < this.correctUserGuesses.length; t++) {
         if (this.moviePick[i] === this.correctUserGuesses[t]) {
           this.wordBeingGuessed += this.correctUserGuesses[t] + ' ';
-          this.updateHTML();
-          added = true;
+          continue letter;
         }
       }
-      if (i === this.moviePick.length - 1 && !added) {
+      if (i === this.moviePick.length - 1) {
         this.wordBeingGuessed += '_';
-        this.updateHTML();
       } else if (this.moviePick[i] === ' ') {
         this.wordBeingGuessed += '- ';
-        this.updateHTML();
-      } else if (!added) {
+      } else {
         this.wordBeingGuessed += '_ ';
-        this.updateHTML();
       }
     }
+    this.updateHTML();
   },
   guess(e) {
-    game.screenInput(e, error => {
-      if (error) {
+      if(game.screenInput(e)) {
         return;
       } else {
         game.logic();
       }
-    });
   },
   logic() {
     if (this.moviePick.indexOf(this.userGuess) === -1) {
@@ -87,7 +80,7 @@ const game = {
       return this.check();
     }
   },
-  screenInput(input, cb) {
+  screenInput(input) {
     let error = false;
     try {
       if (input.keyCode < 65 || input.keyCode > 90) {
@@ -118,7 +111,11 @@ const game = {
       }
       return alert(`You already guessed ${err}!`);
     } finally {
-      cb(error);
+      if(error) {
+        return true
+      } else {
+        return false
+      }
     }
   },
   updateHTML() {
@@ -147,6 +144,8 @@ const game = {
     this.remainingGuesses = 5;
     this.wordbeingGuessed = '';
     this.guessedLetters = '';
+    this.userGuess = '';
+    this.moviePick = '';
     this.correctUserGuesses = [];
     document.removeEventListener('keyup', this.guess);
     return this.initial();
