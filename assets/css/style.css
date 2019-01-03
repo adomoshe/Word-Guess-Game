@@ -14,3 +14,7 @@ h6,
 p {
   color: white;
 }
+
+#game {
+  margin: 20px;
+}

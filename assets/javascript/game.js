@@ -10,7 +10,6 @@ const game = {
     'Jackie Brown',
     'Django Unchained'
   ],
-  spaceCounter: 0,
   wins: 0,
   losses: 0,
   remainingGuesses: 5,
@@ -20,25 +19,20 @@ const game = {
   moviePick: '',
   correctUserGuesses: [],
 
-  initial() {
-    if (this.spaceCounter === 0) {
-      document.addEventListener('keyup', e => {
-        if (e.code === 'Space' && this.spaceCounter === 0) {
-          this.spaceCounter++;
-          document.getElementById('get-started').innerHTML = '';
-          return this.start();
-        }
-      });
-    } else {
-      return this.start();
+  initial(e) {
+    if (e.code === 'Space') {
+      document.getElementById('get-started').innerHTML = '';
+      document.getElementById('game-over').innerHTML = '';
+      return game.start();
     }
   },
   start() {
+    document.removeEventListener('keyup', this.initial);
     let pick = this.movieList[
       Math.floor(Math.random() * this.movieList.length)
     ];
     this.moviePick = pick.toUpperCase();
-    console.log(this.moviePick);
+    console.log(`Here it is... ${this.moviePick}`);
     this.stringGen();
     return document.addEventListener('keyup', this.guess);
   },
@@ -62,11 +56,11 @@ const game = {
     this.updateHTML();
   },
   guess(e) {
-      if(game.screenInput(e)) {
-        return;
-      } else {
-        game.logic();
-      }
+    if (game.screenInput(e)) {
+      return;
+    } else {
+      game.logic();
+    }
   },
   logic() {
     if (this.moviePick.indexOf(this.userGuess) === -1) {
@@ -111,32 +105,50 @@ const game = {
       }
       return alert(`You already guessed ${err}!`);
     } finally {
-      if(error) {
-        return true
+      if (error) {
+        return true;
       } else {
-        return false
+        return false;
       }
     }
   },
-  updateHTML() {
+  updateHTML(game) {
     document.getElementById('wins').innerHTML = `Wins: ${this.wins}`;
     document.getElementById('losses').innerHTML = `Losses: ${this.losses}`;
-    document.getElementById(
-      'word-being-guessed'
-    ).innerHTML = this.wordBeingGuessed;
-    document.getElementById(
-      'letters-already-guessed'
-    ).innerHTML = `You have already guessed: ${this.guessedLetters}`;
-    document.getElementById('number-of-guesses').innerHTML = `You have ${
-      this.remainingGuesses
-    } guesses left`;
+    if (game) {
+      document.getElementById('word-being-guessed').innerHTML = '';
+      document.getElementById('letters-already-guessed').innerHTML = '';
+      document.getElementById('number-of-guesses').innerHTML = '';
+      if (game === 'win') {
+        document.getElementById('game-over').innerHTML =
+          'You Won!<br/><br/>Press Space to play again.';
+      } else if (game === 'loss') {
+        document.getElementById(
+          'game-over'
+        ).innerHTML = `You Lost!<br/><br/>The correct movie was ${
+          this.moviePick
+        }!<br/><br/>Press Space to play again.`;
+      }
+    } else {
+      document.getElementById(
+        'word-being-guessed'
+      ).innerHTML = this.wordBeingGuessed;
+      document.getElementById(
+        'letters-already-guessed'
+      ).innerHTML = `You have already guessed: ${this.guessedLetters}`;
+      document.getElementById('number-of-guesses').innerHTML = `You have ${
+        this.remainingGuesses
+      } guesses left`;
+    }
   },
   check() {
     if (this.wordBeingGuessed.indexOf('_ ' && '_') === -1) {
       this.wins++;
+      this.updateHTML('win');
       return this.resetGame();
     } else if (this.remainingGuesses === 0) {
       this.losses++;
+      this.updateHTML('loss');
       return this.resetGame();
     }
   },
@@ -148,10 +160,10 @@ const game = {
     this.moviePick = '';
     this.correctUserGuesses = [];
     document.removeEventListener('keyup', this.guess);
-    return this.initial();
+    return document.addEventListener('keyup', this.initial);
   }
 };
-game.initial();
+document.addEventListener('keyup', game.initial);
 
 // Below method's capabilities have been incorporated into the stringGen method for simplicity
 
