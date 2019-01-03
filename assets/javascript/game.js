@@ -121,13 +121,13 @@ const game = {
       document.getElementById('number-of-guesses').innerHTML = '';
       if (game === 'win') {
         document.getElementById('game-over').innerHTML =
-          'You Won!<br/><br/>Press Space to play again.';
+          'Correct!<br/><br/>Press Space to play again';
       } else if (game === 'loss') {
         document.getElementById(
           'game-over'
-        ).innerHTML = `You Lost!<br/><br/>The correct movie was ${
+        ).innerHTML = `The correct movie was ${
           this.moviePick
-        }!<br/><br/>Press Space to play again.`;
+        }!<br/><br/>Press Space to play again`;
       }
     } else {
       document.getElementById(
@@ -154,7 +154,7 @@ const game = {
   },
   resetGame() {
     this.remainingGuesses = 5;
-    this.wordbeingGuessed = '';
+    this.wordBeingGuessed = '';
     this.guessedLetters = '';
     this.userGuess = '';
     this.moviePick = '';
@@ -164,22 +164,3 @@ const game = {
   }
 };
 document.addEventListener('keyup', game.initial);
-
-// Below method's capabilities have been incorporated into the stringGen method for simplicity
-
-// stringBuilder() {
-//   const letterIndices = [],
-//     moviePickArr = this.moviePick.split('');
-//   let wordBeingGuessedArr = [];
-//   while (moviePickArr.indexOf(this.userGuess) !== -1) {
-//     letterIndices.push(moviePickArr.indexOf(this.userGuess));
-//     let curIndex = letterIndices.slice(-1);
-//     moviePickArr.splice(curIndex, 1, '');
-//   }
-//   wordBeingGuessedArr = this.wordBeingGuessed.split(' ');
-//   for (let i = 0; i < letterIndices.length; i++) {
-//     wordBeingGuessedArr.splice(letterIndices[i], 1, this.userGuess);
-//   }
-//   this.wordBeingGuessed = wordBeingGuessedArr.join().replace(/,/g, ' ');
-//   return this.updateHTML();
-// },
