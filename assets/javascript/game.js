@@ -75,7 +75,6 @@ const game = {
     }
   },
   screenInput(input) {
-    let error = false;
     try {
       if (input.keyCode < 65 || input.keyCode > 90) {
         if (input.code === 'Space') {
@@ -87,10 +86,8 @@ const game = {
         this.userGuess = input.key.toUpperCase();
       }
     } catch (err) {
-      if (err) {
-        error = true;
-      }
-      return alert(`${err} is an invalid key`);
+      alert(`${err} is an invalid key`);
+      return true;
     }
     try {
       if (
@@ -100,17 +97,10 @@ const game = {
         throw game.userGuess;
       }
     } catch (err) {
-      if (err) {
-        error = true;
-      }
-      return alert(`You already guessed ${err}!`);
-    } finally {
-      if (error) {
-        return true;
-      } else {
-        return false;
-      }
+      alert(`You already guessed ${err}!`);
+      return true;
     }
+    return false;
   },
   updateHTML(game) {
     document.getElementById('wins').innerHTML = `Wins: ${this.wins}`;
